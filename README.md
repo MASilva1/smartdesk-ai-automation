@@ -10,7 +10,7 @@
 >
 > **Technical evidence.** Sanitized workflow JSON, architecture, test scenarios, operational documentation, and a [recorded demonstration](https://youtu.be/qwjR3EYyDpg).
 >
-> **Scope.** This is an **academic prototype inspired by real administrative challenges**, not an official UNSJ system nor an autonomous production deployment. The code is published as a portfolio demonstration.
+> **Scope.** This is an **academic prototype inspired by real administrative challenges**, not an official UNSJ system nor an autonomous production deployment. **[Technical audit (Nov 2026)](docs/auditoria-tecnica-2026-11.md):** identifies authorization, approved-draft synchronization, idempotency and data-minimization risks to address before production use. The code is published as a portfolio demonstration.
 
 ## How I approached the problem
 
