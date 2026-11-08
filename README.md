@@ -39,6 +39,32 @@ flowchart TD
   H --> K["Airtable: responded"]
 ```
 
+## 📸 Real workflow evidence | Evidencias visuales
+
+The screenshots below are taken from the actual n8n prototype, cropped to remove browser tabs and request-data panels. They show a configured architecture and controlled executions, not a production SLA or automated test suite.
+
+### 1. Workflow architecture | Arquitectura completa
+
+![n8n workflow architecture with Gmail, Airtable, GPT-4o-mini, Notion, Slack and human approval](assets/01-arquitectura-workflow-n8n.png)
+
+**What it demonstrates:** how the intake, AI classification, knowledge lookup, records, notifications and approval stages connect.
+
+### 2. Successful execution | Ejecución completada #57
+
+![n8n execution 57 succeeded, with executed branches highlighted in green](assets/02-ejecucion-exitosa-n8n.png)
+
+**What it demonstrates:** a controlled execution from **7 November 2026**, recorded as **Succeeded in 43.862 seconds**, with its processed route highlighted. This is evidence of one completed test path, not proof of all paths or sustained production reliability.
+
+### 3. Human-in-the-loop | Espera de revisión humana #70
+
+![n8n execution 70 waiting during human review](assets/03-pausa-revision-humana-n8n.png)
+
+**What it demonstrates:** the workflow can pause pending review. This execution was in **Waiting** status; it must not be described as completed.
+
+> **Privacy and scope:** screenshots are cropped for portfolio publication. No claims of independent security audit or production performance are made. [Read documented test scenarios](docs/pruebas-y-evidencias.md).
+
+---
+
 ## What this demonstrates
 
 **AI workflow design · n8n orchestration · API/service integrations · Structured output validation · Human-in-the-loop governance · Error handling · Administrative process analysis · Technical documentation · Testing**
