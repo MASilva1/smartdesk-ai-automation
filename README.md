@@ -1,5 +1,8 @@
 # SmartDesk AI | AI-Powered Administrative Workflow Automation
 
+[![Static checks](https://github.com/MASilva1/smartdesk-ai-automation/actions/workflows/static-checks.yml/badge.svg)](https://github.com/MASilva1/smartdesk-ai-automation/actions/workflows/static-checks.yml) · [Technical audit](docs/auditoria-tecnica-2026-11.md) · [Static validation script](scripts/validate-workflow.mjs)
+
+
 **An end-to-end automation case study with human approval — n8n · OpenAI · Gmail · Airtable · Notion · Slack**
 
 [![n8n](https://img.shields.io/badge/Orchestration-n8n-EA4B71)](https://n8n.io/) [![AI](https://img.shields.io/badge/AI-GPT--4o--mini-4051B5)](https://platform.openai.com/) [![Human](https://img.shields.io/badge/Human--in--the--Loop-Required-217346)](docs/seguridad-y-alcance.md)
