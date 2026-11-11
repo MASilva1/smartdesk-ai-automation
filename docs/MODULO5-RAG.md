@@ -1,29 +1,54 @@
-# Módulo 5 — Cerebro Documental RAG | IdeI SmartDesk AI
+# Módulo 5 — Base documental y RAG | IdeI SmartDesk AI
 
-**Alumno:** Matías Silva · **Fecha:** 10/11/2026 · **Estado:** configuración parcial verificable (no presentar como pruebas finales).
+**Alumno:** Matías Silva · **Fecha:** 11 de noviembre de 2026 · **Estado real:** en integración; falta la credencial Supabase en n8n, embeddings y pruebas.
 
-El checkpoint **evoluciona el workflow real del Módulo 4**, manteniendo Gmail Trigger, filtro anti-loop, Airtable CRM, Gmail **Create Draft** (HITL) y alerta a Slack. No se altera ni activa el M4 original.
+## Arquitectura efectivamente preparada
 
-## Evidencia técnica
-- **M4 base (conservado):** `zEqwm7nIX1tCliOA` (50 nodos).
-- **M5 creado en n8n:** [IdeI SmartDesk AI | M5 Cerebro documental RAG](https://masilva.app.n8n.cloud/workflow/JnnApHjEob8uNsiO) (54 nodos, inactivo).
-- **Exportación reutilizable:** [`workflows/idei-smartdesk-m5-rag.sanitizado.json`](../workflows/idei-smartdesk-m5-rag.sanitizado.json). Se omitieron credenciales y webhooks.
-- **Herramienta RAG:** `M5 | Vector Store Retrieve Tool (LlamaCloud)` (HTTP Request Tool conectado por `ai_tool`, interfaz equivalente).
-- **Endpoint oficial:** `POST https://api.cloud.llamaindex.ai/api/v1/retrieval/retrieve`; `top_k: 4` y `score_threshold: 0.72`.
-- **Prompts:** obligación de consultar y citar fragmentos, afirmaciones 100 % basadas en evidencia y respuesta exacta `No sé` ante vacíos.
-- **Tests:** rama independiente de disparo manual (sin escrituras Gmail/Airtable ni notificaciones Slack).
+El proyecto es la continuación **del workflow M4 real**, no un proyecto desde cero. M4 original no se modifica.
 
-## Qué falta para cerrar la rúbrica
+- [M5 — SmartDesk AI / agente documental RAG](https://masilva.app.n8n.cloud/workflow/JnnApHjEob8uNsiO) — **55 nodos**, inactivo; Gmail, Airtable CRM, Create Draft HITL, Slack y memoria de conversación se preservan; AI Agent RAG con vector store y regla de cita/«No sé».
+- [M5 — Ingesta documental en Supabase](https://masilva.app.n8n.cloud/workflow/T5jqyxqF04AvYxvQ) — **5 nodos**, inactivo; lectura de fragmentos, data loader y OpenAI Embeddings `text-embedding-3-small` (1536 dimensiones), escritura de vectores en Supabase.
+- [Supabase — proyecto privado](https://supabase.com/dashboard/project/gxqhcjfwszozualhdkyu) — tabla de fuentes, 11 fragmentos documentales con referencia de sección y página, índice de vectores, funciones de búsqueda semántica y protección RLS.
+- [JSON del agente M5](../workflows/idei-smartdesk-m5-rag.sanitizado.json).
+- [JSON de ingesta M5](../workflows/idei-smartdesk-m5-ingesta.sanitizado.json).
 
-1. En LlamaCloud, crear un proyecto e índice documental privado y cargar el archivo `Manual_Operativo_IDEI_SmartDesk_RAG_v1.pdf` generado como fuente. Verificar procesamiento de jerarquía H1/H2 y tablas preservadas; obtener captura **auténtica** del Data Source.
-2. Configurar la credencial de autenticación del HTTP Request Tool en n8n **sin incluir la clave en el JSON o capturas**. Tipo previsto: `httpTemplatedCustomAuth`; Header `Authorization: Bearer <LLAMA_CLOUD_API_KEY>`. Sustituir el placeholder `PENDIENTE_INDEX_ID_LLAMA` con el `index_id` real del índice. El índice y la credencial **no están conectados todavía**.
-3. Capturar el nodo con `top_k=4` y `score_threshold=0.72` y el editor del System Prompt con regla `No sé`.
-4. Ejecutar **cinco preguntas ciegas reales** con la rama de prueba, conservar fragmentos, scores, citas, respuestas textuales y IDs de ejecución, computar `casos correctos/5`. Incluir un caso `No sé` y fallos reales si aparecieran.
-5. Actualizar el PDF de entrega formal `PreEntrega_Modulo5_MatiasSilva.pdf` con las evidencias originales de los pasos previos. No inferir métricas ni falsificar capturas.
+### Fuente documental
 
-El PDF preliminar y el documento maestro están disponibles en el paquete de entrega preparado en la conversación de ChatGPT. El manual documenta **un prototipo académico, no normas oficiales de la UNSJ**.
+`Manual_IDEI_Modulo5.pdf` — documento normalizado del prototipo IdeI SmartDesk AI, con títulos y tablas. Documento de **estudio y prototipo**, no norma oficial de la Universidad Nacional de San Juan.
 
-## Decisión de arquitectura
-El nodo LlamaParse nativo de esta instancia expone `topK` pero no `score_threshold`. Se usó la API oficial, que permite ambos parámetros de forma explícita y medible, mediante una herramienta `HTTP Request Tool` de n8n. [Referencia técnica de LlamaCloud](https://developers.llamaindex.ai/reference/resources/retrieval/methods/retrieve/).
+- Identificador: `IDEI-SMARTDESK-MAN-RAG-001`.
+- SHA-256 PDF: `38e42bbfe47915d7e6b458630d668f463ce190b0158fd2949a350f7e7a76cd96`.
+- Tablas: `idei_rag_sources` (1 fuente), `idei_rag_chunks` (11 fragmentos), `idei_rag_vectors` (pendiente de generación).
+- Se utiliza un **Data Source Supabase gratuito** porque LlamaCloud exigía pago para crear un índice. No debe presentarse como índice LlamaCloud: la consigna puede penalizar la sustitución.
 
-**Protección de datos:** exportación sin credenciales; no publicar documentos internos confidenciales, datos personales ni claves.
+### Recuperación y anti-alucinación
+
+- Herramienta: Supabase Vector Store (modo `retrieve-as-tool`) con OpenAI Embeddings.
+- **Top-K = 4** en n8n; máximo en SQL = 4.
+- **Minimum Score = 0.72** en función SQL `match_idei_documents` sobre similitud coseno.
+- Justificación: cuatro fragmentos suelen alcanzar para consultas operativas breves sin inyectar exceso de tokens; el umbral inicial conservador reduce recuperación no pertinente, sujeto a recalibración empírica con cinco pruebas ciegas.
+- Prompt obliga a consultar la fuente para hechos institucionales, citar documento + sección + página disponible y emitir exactamente `No sé` si no hay evidencia.
+- Nunca envía correos sin aprobación humana: se conserva `Gmail Create Draft`.
+
+### Seguridad
+
+- Tablas con **RLS activado** y ningún permiso de lectura `anon` ni `authenticated`; acceso previsto mediante credencial de servidor almacenada **solo en n8n**.
+- Ningún JSON de GitHub contiene tokens, claves de autenticación o IDs de webhook.
+- El flujo original M4 y la nueva versión M5 están inactivos salvo el proyecto final independiente preexistente; no enviar pruebas por Gmail.
+
+## Intervención mínima pendiente
+
+1. En **n8n > Credentials**, crear la credencial **Supabase API**, eligiendo nombre `Supabase IDEI RAG M5`, Project URL `https://gxqhcjfwszozualhdkyu.supabase.co` y la clave **secret/service_role** obtenida dentro del panel Supabase. **No copiar la clave al chat, PDF, repo ni capturas.**
+2. Asignar **esa misma credencial** a los nodos `02 | Leer 11 fragmentos IDEI Supabase`, `03 | Indexar fragmentos vectoriales en Supabase` (workflow de ingesta) y `M5 | Supabase Vector Store Retrieve Tool` (agente).
+3. Ejecutar una sola vez la ingesta en n8n. Verificar en Supabase que existan 11 embeddings; el índice rechaza duplicaciones de texto por hash.
+4. Ejecutar las cinco preguntas ciegas en la rama manual de pruebas del agente. Registrar fragmentos y respuestas exactas; calcular `aciertos / 5` y revisar fallas. Incluir caso `No sé`.
+5. Agregar capturas originales a `PreEntrega_Modulo5_MatiasSilva.pdf` y mantener el estado explícito del índice Supabase en lugar de simular Data Source LlamaCloud.
+
+### Cinco preguntas iniciales de control
+1. «¿Si me escribe un bot, también lo atienden?» — manual §3.2.
+2. «¿Le responden de una o alguien da el OK?» — manual §5.2.
+3. «¿Cómo evitan duplicar una ficha si ya había escrito?» — manual §§4.1–4.2.
+4. «¿Dónde aparece que hay un mail pendiente de revisar?» — manual §5.3.
+5. «¿Cuántos días da la UNSJ para aprobar una licencia?» — ausencia de dato en §7: corresponde `No sé`.
+
+**No se informan métricas RAG hasta ejecutar las cinco pruebas reales.**
