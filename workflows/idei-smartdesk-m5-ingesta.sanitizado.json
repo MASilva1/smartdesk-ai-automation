@@ -1,0 +1,185 @@
+{
+  "name": "IdeI SmartDesk AI | M5 Ingesta Documental Supabase",
+  "nodes": [
+    {
+      "id": "0dc7fc38-a052-432f-9cb8-b2e41083fded",
+      "name": "01 | Iniciar ingesta documental M5",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        180,
+        260
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "b05fcca6-88f7-4985-9e6d-4bf486fe8e80",
+      "name": "02 | Leer 11 fragmentos IDEI Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        455,
+        260
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "getAll",
+        "authentication": "secretKey",
+        "tableId": "idei_rag_chunks",
+        "returnAll": true,
+        "orderBy": "chunk_no.asc",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "source_id",
+              "condition": "eq",
+              "keyValue": "IDEI-SMARTDESK-MAN-RAG-001"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "06b26854-053f-4ef1-8ee7-f5b977ce9ed4",
+      "name": "03 | Indexar fragmentos vectoriales en Supabase",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.4,
+      "position": [
+        750,
+        260
+      ],
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "idei_rag_vectors"
+        },
+        "embeddingBatchSize": 11,
+        "options": {
+          "queryName": "match_idei_documents"
+        }
+      }
+    },
+    {
+      "id": "b1c505ba-a81d-4089-a088-ef06a160cdad",
+      "name": "M5 | OpenAI Embeddings 1536",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        900,
+        550
+      ],
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {
+          "dimensions": 1536
+        }
+      }
+    },
+    {
+      "id": "0759229d-dc91-4997-95d3-ce9e320f8048",
+      "name": "M5 | Data Loader fragmentos y citas",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        550
+      ],
+      "parameters": {
+        "dataType": "json",
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.content }}",
+        "textSplittingMode": "simple",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "Manual_IDEI_Modulo5.pdf"
+              },
+              {
+                "name": "source_id",
+                "value": "IDEI-SMARTDESK-MAN-RAG-001"
+              },
+              {
+                "name": "page",
+                "value": "={{ $json.metadata.page }}"
+              },
+              {
+                "name": "heading",
+                "value": "={{ $json.metadata.heading }}"
+              },
+              {
+                "name": "chunk_no",
+                "value": "={{ $json.chunk_no }}"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "01 | Iniciar ingesta documental M5": {
+      "main": [
+        [
+          {
+            "node": "02 | Leer 11 fragmentos IDEI Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 | Leer 11 fragmentos IDEI Supabase": {
+      "main": [
+        [
+          {
+            "node": "03 | Indexar fragmentos vectoriales en Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M5 | OpenAI Embeddings 1536": {
+      "ai_embedding": [
+        [
+          {
+            "node": "03 | Indexar fragmentos vectoriales en Supabase",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M5 | Data Loader fragmentos y citas": {
+      "ai_document": [
+        [
+          {
+            "node": "03 | Indexar fragmentos vectoriales en Supabase",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "pinData": {},
+  "meta": {
+    "exportedAt": "2026-11-11",
+    "module": "M5",
+    "credentialSetupRequired": true,
+    "testsNotYetRun": true,
+    "project": "IdeI SmartDesk AI",
+    "sanitized": true,
+    "semanticEmbeddingsPending": true
+  }
+}
